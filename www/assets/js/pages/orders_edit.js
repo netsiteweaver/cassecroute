@@ -38,7 +38,26 @@ jQuery(function(){
         if(step == '1'){
             $('#modalSelectClient').modal("show");
         }else if(step == '2'){
-            fetchProducts();
+            // Prefer cached preloaded products if available; fallback to existing fetch
+            try{
+                const cache = JSON.parse(localStorage.getItem('ordersBootstrapCache')||'{}');
+                if(cache && cache.result && Array.isArray(cache.products)){
+                    var data = "<div class='row'>";
+                    $(cache.products).each(function(i,j){
+                        data += "<div data-uuid="+j.uuid+" class='col-md-4 product-modal cursor-pointer'>";
+                        data += "<img src='"+base_url+"uploads/products/"+j.photo+"' class='img-thumbnail'>";
+                        data += "<h6>"+j.name+"</h6>";
+                        data += "</div>";
+                    })
+                    data += "</div>";
+                    $('#modalSelectProducts .modal-body').empty().append(data);
+                    $('#modalSelectProducts').modal("show");
+                }else{
+                    fetchProducts();
+                }
+            }catch(e){
+                fetchProducts();
+            }
         }else if(step == '3'){
             if( !$("#process2").hasClass("btn-success") ){
                 myAlert("Please select a product first before entering measurements");

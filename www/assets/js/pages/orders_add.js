@@ -28,26 +28,7 @@ jQuery(function(){
 
     checkUnsavedOrder();
 
-    $.ajax({
-        url: base_url + "ajax/products/getCategories",
-        method:"GET",
-        dataType:"JSON",
-        success:function(response) {
-            if(response.result) {
-                if(response.rows > 0) {
-                    $('#categories .row > div.target').empty();
-                    $(response.categories).each(function(i,j){
-                        var output = '<div class="col-md-4 btn pos-btn btn-default select-category" data-category-id="'+j.id+'">';
-                        output += '<div class="image"><img src="'+ base_url + "uploads/product_categories/" + j.photo + '" alt=""></div>';
-                        output += '<div class="label">'+j.name+'</div>'
-                        output += '</div>'
-                        $('#categories .row > div.target').append(output);
-                    })
-                    
-                }
-            }
-        }
-    })
+    preloadOrdersData();
 
     $('#selectTable2').on("click",".select-table",function(){
         let tbl = $(this).data("table");
@@ -190,63 +171,102 @@ jQuery(function(){
         $('#assignTable2').modal("hide");
     })
 
+    // bootstrap preload for orders (categories + products + addons)
+    async function preloadOrdersData(){
+        try{
+            const cachedAt = localStorage.getItem('ordersBootstrapCacheAt');
+            const cacheRaw = localStorage.getItem('ordersBootstrapCache');
+            let useCache = false;
+            if(cachedAt && cacheRaw){
+                // simple TTL cache: 30 minutes
+                const ageMs = Date.now() - parseInt(cachedAt,10);
+                if(!isNaN(ageMs) && ageMs < (30*60*1000)){
+                    useCache = true;
+                }
+            }
+            let payload;
+            if(useCache){
+                payload = JSON.parse(cacheRaw);
+            }else{
+                const res = await fetch(base_url + 'ajax/bootstrap/orders', { method: 'GET' });
+                payload = await res.json();
+                if(payload && payload.result){
+                    localStorage.setItem('ordersBootstrapCache', JSON.stringify(payload));
+                    localStorage.setItem('ordersBootstrapCacheAt', String(Date.now()));
+                }
+            }
+            if(payload && payload.result){
+                renderCategories(payload.categories || []);
+            }
+        }catch(e){
+            // fallback: do nothing
+        }
+    }
+
+    function renderCategories(categories){
+        if(!Array.isArray(categories)) return;
+        $('#categories .row > div.target').empty();
+        $(categories).each(function(i,j){
+            var output = '<div class="col-md-4 btn pos-btn btn-default select-category" data-category-id="'+j.id+'">';
+            output += '<div class="image"><img src="'+ base_url + "uploads/product_categories/" + j.photo + '" alt=""></div>';
+            output += '<div class="label">'+j.name+'</div>'
+            output += '</div>'
+            $('#categories .row > div.target').append(output);
+        })
+    }
+
     $('#categories').on("click",".select-category", function(){
         let categoryId = $(this).data("category-id");
         let categoryName = $(this).find(".label").text();
         Notify('one-beep');
         myloader("on")
-        $.ajax({
-            url: base_url + "ajax/products/getByCategoryId",
-            data:{id:categoryId},
-            method:"GET",
-            dataType:"JSON",
-            success:function(response) {
-                if(response.result) {
-                    if(response.rows > 0) {
-                        $('#products .row > div.target').empty();
-                        $(response.products).each(function(i,j){
-                            var output = '<div class="col-md-4 btn pos-btn btn-default select-product" data-product-id="'+j.id+'" data-product-price="'+j.selling_price+'" data-product-vat="'+j.vat+'"data-product-name="'+j.name+'" data-category="'+j.categoryName+'">';
-                            if( (j.photo=="") || (j.photo == null) ){
-                                output += '<div class="image"><img src="'+ base_url + "assets/images/image-placeholder-200px.png" +  '" alt=""></div>';
-                            }else{
-                                output += '<div class="image"><img src="'+ base_url + "uploads/products/" + j.photo + '" alt=""></div>';
-                            }
-                            output += '<div class="label">'+j.name+'</div>'
-                            output += '<div class="price">Rs '+(j.selling_price).toLocaleString("en-US")+'</div>'
-                            output += '</div>'
-                            $('#products .row > div.target').append(output);
-                        })
-                        $('#categories').addClass("d-none")
-                        $('#products').removeClass("d-none");
-                        $('#products .category-name').text(categoryName)
-                        if(response.addons.length>0){
-                            $('#addons-block .content').empty();
-                            $(response.addons).each(function(i,j){
-                                var output = '<div class="col-md-4 btn addon-btn btn-default select-addon" data-product-id="'+j.id+'" data-product-price="'+j.selling_price+'" data-product-vat="'+j.vat+'" data-product-name="'+j.name+'" data-category="'+j.categoryName+'">';
-                                if(j.photo==""){
-                                    output += '<div class="image"><img src="'+ base_url + "assets/images/image-placeholder-200px.png" +  '" alt=""></div>';
-                                }else{
-                                    output += '<div class="image"><img src="'+ base_url + "uploads/addons/" + j.photo + '" alt=""></div>';
-                                }
-                                output += '<div class="label">'+j.name+'!</div>'
-                                output += '<div class="price">Rs '+(j.selling_price).toLocaleString("en-US")+'</div>'
-                                output += '</div>';
-                                $('#addons-block .content').append(output);
-                            })
-                            $('#addons-block').removeClass("d-none");
-                        }else{
-                            $('#addons-block .content').empty();
-                            $('#addons-block').addClass("d-none");
-                        }
-                    }else{
-                        toastr["info"]("Sorry ! There are no items in "+categoryName)
-                    }
+        try {
+            const cache = JSON.parse(localStorage.getItem('ordersBootstrapCache') || '{}');
+            const allProducts = Array.isArray(cache.products) ? cache.products : [];
+            const products = allProducts.filter(p => String(p.category_id) === String(categoryId));
+            $('#products .row > div.target').empty();
+            $(products).each(function(i,j){
+                var output = '<div class="col-md-4 btn pos-btn btn-default select-product" data-product-id="'+j.id+'" data-product-price="'+j.selling_price+'" data-product-vat="'+j.vat+'" data-product-name="'+j.name+'" data-category="'+j.categoryName+'">';
+                if( (j.photo=="") || (j.photo == null) ){
+                    output += '<div class="image"><img src="'+ base_url + "assets/images/image-placeholder-200px.png" +  '" alt=""></div>';
+                }else{
+                    output += '<div class="image"><img src="'+ base_url + "uploads/products/" + j.photo + '" alt=""></div>';
                 }
-            },
-            complete:function(){
-                myloader("off")
+                output += '<div class="label">'+j.name+'</div>'
+                output += '<div class="price">Rs '+(j.selling_price).toLocaleString("en-US")+'</div>'
+                output += '</div>'
+                $('#products .row > div.target').append(output);
+            })
+            $('#categories').addClass("d-none")
+            $('#products').removeClass("d-none");
+            $('#products .category-name').text(categoryName)
+
+            const addonsMap = cache.addons_by_category || {};
+            const addons = addonsMap[String(categoryId)] || [];
+            if(addons.length>0){
+                $('#addons-block .content').empty();
+                $(addons).each(function(i,j){
+                    var output = '<div class="col-md-4 btn addon-btn btn-default select-addon" data-product-id="'+j.id+'" data-product-price="'+j.selling_price+'" data-product-vat="'+j.vat+'" data-product-name="'+j.name+'" data-category="'+(j.categoryName||'')+'">';
+                    if(j.photo==""){
+                        output += '<div class="image"><img src="'+ base_url + "assets/images/image-placeholder-200px.png" +  '" alt=""></div>';
+                    }else{
+                        output += '<div class="image"><img src="'+ base_url + "uploads/addons/" + j.photo + '" alt=""></div>';
+                    }
+                    output += '<div class="label">'+j.name+'!</div>'
+                    output += '<div class="price">Rs '+(j.selling_price).toLocaleString("en-US")+'</div>'
+                    output += '</div>';
+                    $('#addons-block .content').append(output);
+                })
+                $('#addons-block').removeClass("d-none");
+            }else{
+                $('#addons-block .content').empty();
+                $('#addons-block').addClass("d-none");
             }
-        })
+        } catch (e) {
+            toastr["error"]("Unable to load cached products. Please reload page.");
+        } finally {
+            myloader("off")
+        }
     })
 
     $('#products').on("click",".select-product",function(){

@@ -51,6 +51,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 */
 $route['default_controller'] = 'dashboard';
 
+$route['ajax/bootstrap/orders'] = 'ajax/bootstrap/orders';
+
 $route['reports/orders']['POST'] = 'reports/processOrders';
 
 $route['404_override'] = '';
