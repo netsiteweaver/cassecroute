@@ -79,6 +79,8 @@ class Product_categories extends MY_Controller {
 
         $this->data['productcategories'] = $this->product_categories_model->get();
 
+        $this->loadScript("https://code.jquery.com/ui/1.13.2/jquery-ui.min.js");
+
         //Breadcrumbs
         $this->data['breadcrumbs'] = $this->mybreadcrumb->render();
         $this->data['page_title'] = "Product Categories";

@@ -52,13 +52,13 @@ class Misc extends CI_Controller
         $data = json_decode($json);
         $vars = [];
         foreach($data as $item){
-            $vars[] = array(
-                $display_order_field    =>  $item->{$display_order_field},
-                $pk                     =>  $item->id
-            );
+            $this->db->set("display_order",$item->{$display_order_field})->where("uuid",$item->id)->update("product_categories");
         }
-        $this->db->update_batch($table,$vars,$pk);
-        
+        echo json_encode(array(
+            "result"    =>  true,
+            "rows_updated"  =>  count($data)
+        ));
+        exit;
     }
 
     public function delete()

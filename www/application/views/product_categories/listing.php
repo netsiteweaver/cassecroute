@@ -15,7 +15,7 @@
             <div class="box-body table-responsive no-padding">
                 <table id="category_listing" class="table">            
                     <colgroup>
-                        <col style='width:200px;'>
+                        <col style='width:100px;'>
                         <col style='width:25%'>
                         <col>
                     </colgroup>        
@@ -29,7 +29,7 @@
                     <tbody>
                         <?php foreach($productcategories as $productcategory): ?>
                         <tr data-id="<?php echo $productcategory->uuid;?>">
-                            <td><img src="<?php echo base_url("uploads/product_categories/".$productcategory->photo);?>" style="width:200px;"></td>
+                            <td><img src="<?php echo base_url("uploads/product_categories/".$productcategory->photo);?>" style="width:100px;"></td>
                             <td><?php echo $productcategory->name; ?></td>
                             <td>
                                 <?php if($perms['edit']): ?>

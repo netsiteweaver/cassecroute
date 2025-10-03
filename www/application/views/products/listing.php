@@ -55,7 +55,7 @@
                     <thead>
                         <tr>
                             <th>Photo</th>
-                            <th>Stock Ref <span class="showOnFocus hidden"><i class="fa fa-search"></i></span></th>
+                            <!-- <th>Stock Ref <span class="showOnFocus hidden"><i class="fa fa-search"></i></span></th> -->
                             <th>Item Name <span class="showOnFocus hidden"><i class="fa fa-search"></i></span></th>
                             <th>Category</th>
                             <th>Price</th>
@@ -75,7 +75,7 @@
                                 <img style='width:100%' src="<?php echo base_url('uploads/products/'.$product->photo); ?>" alt="<?php //echo $product->photo;?>">
                                 <?php endif;?>
                             </td>
-                            <td><?php echo $product->stockref; ?></td>
+                            <!-- <td><?php echo $product->stockref; ?></td> -->
                             <td><?php echo $product->name; ?></td>
                             <td><?php echo $product->category_name; ?></td>
                             <td class='text-right'><?php echo number_format( ($grossAmount),2); ?></td>
