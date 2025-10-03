@@ -87,6 +87,11 @@
           <a href="<?php echo base_url("messages/listing");?>" class="dropdown-item dropdown-footer">See All Messages</a>
         </div>
       </li>
+      <li class="nav-item">
+        <a class='nav-link clearCache' href="ajax/clearCache">
+          <i class="fa fa-undo"></i> Clear Cache
+        </a>
+      </li>
       <?php if($_SESSION['user_level'] != 'Normal'):?>
       <?php if( (isset($_SESSION['backoffice'])) && ($_SESSION['backoffice']=='on') ):?>
       <li class='nav-item'>

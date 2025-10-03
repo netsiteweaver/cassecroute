@@ -33,6 +33,15 @@ $(document).ready(function(){
         }
     })
 
+	$('.clearCache').on('click',function(e){
+		e.preventDefault();
+		if(confirm('Are you sure you want to clear the cache and fetch items from the server')){
+			console.log(localStorage.getItem('ordersBootstrapCache'));
+			localStorage.removeItem('ordersBootstrapCache');
+			localStorage.removeItem('ordersBootstrapCacheAt');
+		}
+	})
+
 	$('#version-history').on('click',function(){
 		getVersionHistory();
 	})
