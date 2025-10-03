@@ -64,6 +64,8 @@ $(function() {
                         playLoginSound("failed");
                     } else {
                         playLoginSound("success")
+                        localStorage.removeItem("ordersBootstrapCache");
+                        localStorage.removeItem("ordersBootstrapCacheAt");
                         let html = "<div class='login-result'>";
                         if(response.logo.length>0) html += "<img src='../uploads/logo/"+response.logo+"' style='width:100px;'>"
                         html+= "<p>Authentication Successfull</p></div>"
