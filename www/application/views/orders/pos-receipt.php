@@ -174,6 +174,8 @@
 		</tbody>
 	</table>
 
+	<hr>
+
 	<div id="buttons">
 		<a class="print" style='color:brown'><i class="fa fa-print"></i> Print</a>
 		<a href="<?php echo base_url("orders/add");?>" style='color:brown'><i class="fa fa-chevron-right"></i> Continue</a>
