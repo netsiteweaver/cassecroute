@@ -2,6 +2,12 @@ var reportType = null;
 
 jQuery(function(){
 
+    // Ensure modal backdrop is removed when modal is hidden
+    $('#loadingModal').on('hidden.bs.modal', function () {
+        $('body').removeClass('modal-open');
+        $('.modal-backdrop').remove();
+    });
+
     $('#type').on("change",function(){
         let reportType = $(this).val();
         if(reportType.length>0){
@@ -15,12 +21,66 @@ jQuery(function(){
     })
 
     $('#proceed').on("click",function(){
+        let $btn = $(this);
+        let originalHtml = $btn.html();
+        
         let type = $('#type :selected').val();
         let singleDate = $('input[name=singleDate]').val();
         let mMonth = $('select[name=mMonth] :selected').val();
         let mYear = $('select[name=mYear] :selected').val();
         let year = $('select[name=year] :selected').val();
         let dateRange = $('input[name=dateRange]').val();
+        
+        // Validate based on selected type
+        let isValid = true;
+        let errorMessage = "";
+        
+        if(!type || type === ""){
+            isValid = false;
+            errorMessage = "Please select a date range type";
+        } else if(type == 'day') {
+            if(!singleDate || singleDate === ""){
+                isValid = false;
+                errorMessage = "Please select a date";
+            }
+        } else if(type == 'month') {
+            if(!mMonth || mMonth === ""){
+                isValid = false;
+                errorMessage = "Please select a month";
+            } else if(!mYear || mYear === ""){
+                isValid = false;
+                errorMessage = "Please select a year";
+            }
+        } else if(type == 'year') {
+            if(!year || year === ""){
+                isValid = false;
+                errorMessage = "Please select a year";
+            }
+        } else if(type == 'custom') {
+            if(!dateRange || dateRange === ""){
+                isValid = false;
+                errorMessage = "Please select a date range";
+            }
+        }
+        
+        // If validation fails, show error and return
+        if(!isValid){
+            toastr["error"](errorMessage);
+            return false;
+        }
+        
+        // Show loader and disable button
+        $btn.prop('disabled', true);
+        $btn.html('<i class="fa fa-spinner fa-spin"></i> Loading...');
+        
+        // Show loading modal - ensure it's properly reset first
+        $('#loadingModal').removeClass('show').css('display', 'none').attr('aria-hidden', 'true');
+        $('body').removeClass('modal-open');
+        $('.modal-backdrop').remove();
+        
+        // Now show it properly
+        $('#loadingModal').modal('show');
+        
         let includeAddons = $('#includeAddons').is(':checked') ? 1 : 0;
         let url = base_url + "reports/products"
 
@@ -40,6 +100,20 @@ jQuery(function(){
             dataType:"JSON",
             data:{type:type,singleDate:singleDate,mMonth:mMonth, mYear:mYear,year:year,dateRange:dateRange,includeAddons:includeAddons},
             success: function(response) {
+                // Close modal and clean up
+                $('#loadingModal').modal('hide');
+                
+                // Ensure cleanup after modal animation completes
+                setTimeout(function() {
+                    $('#loadingModal').removeClass('show').css('display', 'none').attr('aria-hidden', 'true');
+                    $('body').removeClass('modal-open');
+                    $('.modal-backdrop').remove();
+                }, 150);
+                
+                // Restore button
+                $btn.prop('disabled', false);
+                $btn.html(originalHtml);
+                
                 if(response.result){
                     if(response.rows == 0){
                         $('#result table tbody').empty();
@@ -69,6 +143,24 @@ jQuery(function(){
 
                 }
 
+            },
+            error: function(xhr, status, error) {
+                // Close modal and clean up on error
+                $('#loadingModal').modal('hide');
+                
+                // Ensure cleanup after modal animation completes
+                setTimeout(function() {
+                    $('#loadingModal').removeClass('show').css('display', 'none').attr('aria-hidden', 'true');
+                    $('body').removeClass('modal-open');
+                    $('.modal-backdrop').remove();
+                }, 150);
+                
+                // Restore button on error
+                $btn.prop('disabled', false);
+                $btn.html(originalHtml);
+                
+                toastr["error"]("An error occurred while processing your request. Please try again.");
+                console.error("AJAX Error:", error);
             }
         })
     })

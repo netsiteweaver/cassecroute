@@ -116,3 +116,18 @@
         </div>
     </div>
 </div>
+
+<!-- Loading Modal -->
+<div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="loadingModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-body text-center" style="padding: 40px;">
+                <div class="mb-3">
+                    <i class="fa fa-spinner fa-spin fa-3x text-primary"></i>
+                </div>
+                <!-- <h5>Loading Report...</h5> -->
+                <p class="text-muted mb-0">Please wait while we process your request.</p>
+            </div>
+        </div>
+    </div>
+</div>
