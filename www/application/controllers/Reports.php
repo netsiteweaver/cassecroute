@@ -109,6 +109,17 @@ class Reports extends MY_Controller
         $this->data['breadcrumbs'] = $this->mybreadcrumb->render();
         $this->data['page_title'] = "Products Report";
 
+        // Get distinct years from orders table
+        $years = $this->db->select("YEAR(order_date) as year")
+            ->from("orders")
+            ->where("status", "1")
+            ->group_by("YEAR(order_date)")
+            ->order_by("year", "DESC")
+            ->get()
+            ->result();
+        
+        $this->data['years'] = $years;
+
         $this->data["content"] = $this->load->view("/reports/products", $this->data, true);
         $this->load->view("/layouts/AdminLTE-3.2.0/default",$this->data);
     }

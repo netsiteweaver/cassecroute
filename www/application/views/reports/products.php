@@ -53,9 +53,11 @@
                 <label for="">Select Year</label>
                 <select name="mYear" id="" class="form-control">
                     <option value="">Select</option>
-                    <?php for($i=date('Y');$i>date('Y')-10;$i--):?>
-                    <option value="<?php echo $i;?>" <?php echo (date("Y")==$i)?'selected':'';?>><?php echo $i;?></option>
-                    <?php endfor;?>
+                    <?php if(!empty($years)): ?>
+                        <?php foreach($years as $yearObj): ?>
+                        <option value="<?php echo $yearObj->year;?>" <?php echo (date("Y")==$yearObj->year)?'selected':'';?>><?php echo $yearObj->year;?></option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </select>
             </div>
         </div>
@@ -65,9 +67,11 @@
             <label for="">Select Year</label>
             <select name="year" id="" class="form-control">
                 <option value="">Select</option>
-                <?php for($i=date('Y');$i>date('Y')-10;$i--):?>
-                <option value="<?php echo $i;?>" <?php echo (date("Y")==$i)?'selected':'';?>><?php echo $i;?></option>
-                <?php endfor;?>
+                <?php if(!empty($years)): ?>
+                    <?php foreach($years as $yearObj): ?>
+                    <option value="<?php echo $yearObj->year;?>" <?php echo (date("Y")==$yearObj->year)?'selected':'';?>><?php echo $yearObj->year;?></option>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </select>
         </div>
     </div>
