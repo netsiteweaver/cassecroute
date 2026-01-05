@@ -112,4 +112,73 @@ class Reports extends MY_Controller
         $this->data["content"] = $this->load->view("/reports/products", $this->data, true);
         $this->load->view("/layouts/AdminLTE-3.2.0/default",$this->data);
     }
+
+    public function processProducts()
+    {
+        $type = $this->input->post("type");
+        $singleDate = $this->input->post("singleDate");
+        $mMonth = $this->input->post("mMonth");
+        $mYear = $this->input->post("mYear");
+        $year = $this->input->post("year");
+        $dateRange = $this->input->post("dateRange");
+        $includeAddons = $this->input->post("includeAddons");
+        
+        $this->db->select("
+                p.id,
+                p.name as product_name,
+                p.stockref,
+                p.type as product_type,
+                pc.name as category_name,
+                SUM(od.quantity) as total_quantity
+                ")
+                ->from("order_details od")
+                ->join("orders o","o.id=od.order_id","inner")
+                ->join("products p","p.id=od.product_id","inner")
+                ->join("product_categories pc","pc.id=p.category_id","left")
+                ->where("o.status","1");
+        
+        // Only filter by product type if addons are not included
+        if(empty($includeAddons) || $includeAddons == 0){
+            $this->db->where("p.type","product");
+        }
+        
+        $this->db->group_by("p.id, p.name, p.stockref, p.type, pc.name");
+
+        switch($type){
+            case "day":
+                if(!empty($singleDate)){
+                    $this->db->where(["DATE(o.order_date)"=>$singleDate]);
+                }
+                break;
+            case "month":
+                if(!empty($mMonth) && !empty($mYear)){
+                    $this->db->where(["MONTH(o.order_date)"=>$mMonth,"YEAR(o.order_date)"=>$mYear]);
+                }
+                break;
+            case "year":
+                if(!empty($year)){
+                    $this->db->where(["YEAR(o.order_date)"=>$year]);
+                }
+                break;
+            case "custom":
+                if(!empty($dateRange)){
+                    $dt = explode(" - ",$dateRange);
+                    if(isset($dt[0]) && isset($dt[1]) && !empty($dt[0]) && !empty($dt[1])){
+                        $this->db->where(["DATE(o.order_date)>="=>trim($dt[0]),"DATE(o.order_date)<="=>trim($dt[1])]);
+                    }
+                }
+                break;
+        }
+
+        $this->db->order_by("total_quantity","desc");
+        $products = $this->db->get()->result(); 
+        
+        echo json_encode(array(
+            "result"        =>  true,
+            "rows"          =>  count($products),
+            "products"      =>  $products,
+            "query"         =>  $this->db->last_query()
+        ));
+        exit;     
+    }
 }
